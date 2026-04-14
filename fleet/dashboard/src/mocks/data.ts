@@ -43,7 +43,7 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-const rand = seededRandom(42);
+export const rand = seededRandom(42);
 
 function randomElement<T>(arr: T[]): T {
   return arr[Math.floor(rand() * arr.length)];

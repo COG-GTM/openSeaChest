@@ -19,6 +19,7 @@ import {
   mockFleetReliability,
   getMockFarmSnapshot,
   getHealthTimeSeriesForDevice,
+  rand,
 } from './data';
 
 function paginate<T>(items: T[], page: number, pageSize: number) {
@@ -45,8 +46,8 @@ function filterDevices(devices: DeviceInfo[], params: URLSearchParams): DeviceIn
 
   const host = params.get('host');
   if (host) {
-    const matchHost = mockHosts.find((h) => h.hostname.toLowerCase().includes(host.toLowerCase()));
-    if (matchHost) result = result.filter((d) => d.host_id === matchHost.id);
+    const matchHosts = mockHosts.filter((h) => h.hostname.toLowerCase().includes(host.toLowerCase()));
+    if (matchHosts.length > 0) result = result.filter((d) => matchHosts.some((h) => h.id === d.host_id));
     else result = [];
   }
 
@@ -206,7 +207,7 @@ export const handlers = [
       ...snap,
       timestamp: new Date(Date.now() - (30 - i) * 86400000).toISOString(),
       power_on_hours: snap.power_on_hours - (30 - i) * 24,
-      current_temperature_c: snap.current_temperature_c + Math.floor(Math.random() * 4) - 2,
+      current_temperature_c: snap.current_temperature_c + Math.floor(rand() * 4) - 2,
     }));
     return HttpResponse.json(history);
   }),
