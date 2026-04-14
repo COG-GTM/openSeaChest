@@ -253,7 +253,19 @@ export function getMockFarmSnapshot(serial: string): FarmSnapshot {
 }
 
 export const mockFleetHealthSummary: FleetHealthSummary = (() => {
-  const summary: FleetHealthSummary = { good: 0, warning: 0, tripped: 0, unknown: 0, total: mockDevices.length };
+  const staleThreshold = Date.now() - 24 * 60 * 60 * 1000;
+  const staleCount = mockDevices.filter(
+    (d) => new Date(d.last_seen).getTime() < staleThreshold,
+  ).length;
+  const summary: FleetHealthSummary = {
+    good: 0,
+    warning: 0,
+    tripped: 0,
+    unknown: 0,
+    total: mockDevices.length,
+    total_hosts: mockHosts.length,
+    stale_devices: staleCount,
+  };
   for (const d of mockDevices) {
     summary[d.smart_status]++;
   }

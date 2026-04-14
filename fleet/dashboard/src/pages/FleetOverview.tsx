@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useFleetHealthSummary } from '../hooks/useHealth';
-import { useDevices } from '../hooks/useDevices';
 import { useAlerts } from '../hooks/useAlerts';
 import { getComplianceSummary } from '../api/client';
 import { useQuery } from '@tanstack/react-query';
@@ -41,7 +40,6 @@ function StatCard({
 
 export default function FleetOverview() {
   const { data: health, isLoading: healthLoading } = useFleetHealthSummary();
-  const { data: devicesData } = useDevices({ page: 1, page_size: 1 });
   const { data: alertsData } = useAlerts({ page: 1, page_size: 10 });
   const { data: complianceSummary } = useQuery({
     queryKey: ['compliance', 'summary'],
@@ -56,10 +54,8 @@ export default function FleetOverview() {
     ? complianceSummary.reduce((acc, s) => acc + s.non_compliant, 0)
     : 0;
 
-  const staleThreshold = Date.now() - 24 * 60 * 60 * 1000;
-  const staleDevices = devicesData?.items.filter(
-    (d) => new Date(d.last_seen).getTime() < staleThreshold,
-  ).length ?? 0;
+  const totalHosts = health?.total_hosts ?? 0;
+  const staleDevices = health?.stale_devices ?? 0;
 
   const pieData = health
     ? [
@@ -107,7 +103,7 @@ export default function FleetOverview() {
         />
         <StatCard
           label="Total Hosts"
-          value={new Set(devicesData?.items.map((d) => d.host_id)).size || '—'}
+          value={totalHosts}
           color="text-gray-900 dark:text-white"
           to="/devices"
         />

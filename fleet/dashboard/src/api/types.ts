@@ -137,6 +137,8 @@ export interface FleetHealthSummary {
   tripped: number;
   unknown: number;
   total: number;
+  total_hosts: number;
+  stale_devices: number;
 }
 
 export interface FleetReliability {

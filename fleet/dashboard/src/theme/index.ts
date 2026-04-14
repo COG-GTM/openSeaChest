@@ -9,6 +9,9 @@ export const COLORS = {
   primary: '#3b82f6',
   info: '#3b82f6',
   critical: '#ef4444',
+  firing: '#ef4444',
+  acknowledged: '#f59e0b',
+  resolved: '#22c55e',
 } as const;
 
 export const CHART_COLORS = [
