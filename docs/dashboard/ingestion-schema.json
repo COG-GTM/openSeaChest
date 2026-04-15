@@ -1,0 +1,333 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenSeaChest Dashboard Ingestion Schema",
+  "description": "Shared contract for data flowing from the Collection Agent (WI-1) through the Backend API (WI-2) and consumed by the Alerting Engine (WI-4). Each ingestion payload represents a single collection run from one host.",
+  "type": "object",
+  "required": ["schema_version", "host", "collected_at", "devices"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Semantic version of this ingestion schema."
+    },
+    "host": {
+      "type": "object",
+      "required": ["hostname"],
+      "properties": {
+        "hostname": {
+          "type": "string",
+          "description": "FQDN or short hostname of the machine that was scanned."
+        },
+        "os": {
+          "type": "string",
+          "description": "Operating system identifier, e.g. 'Linux 6.1', 'Windows 11'."
+        },
+        "agent_version": {
+          "type": "string",
+          "description": "Version of the collection agent that produced this payload."
+        }
+      },
+      "additionalProperties": false
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of when the collection run started."
+    },
+    "devices": {
+      "type": "array",
+      "description": "One entry per storage device discovered on the host.",
+      "items": {
+        "$ref": "#/definitions/device"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "device": {
+      "type": "object",
+      "required": ["device_path", "device_type", "identity"],
+      "properties": {
+        "device_path": {
+          "type": "string",
+          "description": "OS device handle, e.g. '/dev/sg1', 'PD1'."
+        },
+        "device_type": {
+          "type": "string",
+          "enum": ["SATA_HDD", "SATA_SSD", "SAS_HDD", "SAS_SSD", "NVMe"],
+          "description": "Categorised device type derived from interface and rotation rate."
+        },
+        "identity": {
+          "$ref": "#/definitions/device_identity"
+        },
+        "capacity": {
+          "$ref": "#/definitions/capacity_info"
+        },
+        "temperature": {
+          "$ref": "#/definitions/temperature_info"
+        },
+        "power_on": {
+          "$ref": "#/definitions/power_on_info"
+        },
+        "interface": {
+          "$ref": "#/definitions/interface_info"
+        },
+        "workload": {
+          "$ref": "#/definitions/workload_info"
+        },
+        "smart": {
+          "$ref": "#/definitions/smart_info"
+        },
+        "firmware": {
+          "$ref": "#/definitions/firmware_info"
+        },
+        "security": {
+          "$ref": "#/definitions/security_info"
+        }
+      },
+      "additionalProperties": false
+    },
+    "device_identity": {
+      "type": "object",
+      "required": ["model_number", "serial_number", "firmware_revision"],
+      "properties": {
+        "model_number": {
+          "type": "string"
+        },
+        "serial_number": {
+          "type": "string"
+        },
+        "firmware_revision": {
+          "type": "string"
+        },
+        "world_wide_name": {
+          "type": ["string", "null"]
+        },
+        "form_factor_inches": {
+          "type": ["number", "null"],
+          "description": "Form factor in inches, e.g. 2.5, 3.5."
+        },
+        "rotation_rate_rpm": {
+          "type": ["integer", "null"],
+          "description": "Rotation rate in RPM. null for SSDs."
+        },
+        "is_ssd": {
+          "type": "boolean"
+        },
+        "logical_sector_size_bytes": {
+          "type": ["integer", "null"]
+        },
+        "physical_sector_size_bytes": {
+          "type": ["integer", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "capacity_info": {
+      "type": "object",
+      "properties": {
+        "capacity_bytes": {
+          "type": ["integer", "null"],
+          "description": "Drive capacity in bytes (computed from reported TB/GB)."
+        },
+        "capacity_display": {
+          "type": ["string", "null"],
+          "description": "Human-readable capacity string as reported, e.g. '4.00 TB'."
+        },
+        "max_lba": {
+          "type": ["integer", "null"]
+        },
+        "native_max_lba": {
+          "type": ["integer", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "temperature_info": {
+      "type": "object",
+      "properties": {
+        "current_celsius": {
+          "type": ["number", "null"]
+        },
+        "highest_celsius": {
+          "type": ["number", "null"]
+        },
+        "lowest_celsius": {
+          "type": ["number", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "power_on_info": {
+      "type": "object",
+      "properties": {
+        "power_on_hours": {
+          "type": ["number", "null"],
+          "description": "Total power-on hours as a decimal."
+        },
+        "power_on_hours_display": {
+          "type": ["string", "null"],
+          "description": "Human-readable power-on time, e.g. '4 days 1 hour'."
+        }
+      },
+      "additionalProperties": false
+    },
+    "interface_info": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "enum": ["SATA", "SAS", "NVMe"],
+          "description": "Storage protocol."
+        },
+        "max_speed_gbps": {
+          "type": ["number", "null"]
+        },
+        "negotiated_speed_gbps": {
+          "type": ["number", "null"]
+        },
+        "specifications": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of supported specs, e.g. ['ACS-2', 'SATA 3.1']."
+        },
+        "features": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of supported features, e.g. ['NCQ', 'SMART', 'TRIM']."
+        }
+      },
+      "additionalProperties": false
+    },
+    "workload_info": {
+      "type": "object",
+      "properties": {
+        "annualized_workload_rate_tb_yr": {
+          "type": ["number", "null"]
+        },
+        "total_bytes_read": {
+          "type": ["integer", "null"],
+          "description": "Total bytes read (in bytes)."
+        },
+        "total_bytes_written": {
+          "type": ["integer", "null"],
+          "description": "Total bytes written (in bytes)."
+        },
+        "percentage_used_endurance": {
+          "type": ["number", "null"],
+          "description": "SSD endurance indicator percentage. null for HDDs."
+        }
+      },
+      "additionalProperties": false
+    },
+    "smart_info": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["Good", "Bad", "Unknown"],
+          "description": "Overall SMART health status from --smartCheck."
+        },
+        "tripped": {
+          "type": "boolean",
+          "description": "true if SMART has been tripped (status == 'Bad')."
+        },
+        "attributes": {
+          "type": "array",
+          "description": "SMART attributes from --smartAttributes raw output.",
+          "items": {
+            "$ref": "#/definitions/smart_attribute"
+          }
+        },
+        "last_dst": {
+          "$ref": "#/definitions/dst_info"
+        }
+      },
+      "additionalProperties": false
+    },
+    "smart_attribute": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Attribute ID (1-255)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Attribute name, e.g. 'Read Error Rate'."
+        },
+        "status_flags": {
+          "type": ["string", "null"],
+          "description": "Status flags as hex string, e.g. '0x000F'."
+        },
+        "nominal": {
+          "type": ["integer", "null"],
+          "description": "Current normalized value (0-255 hex -> decimal)."
+        },
+        "worst": {
+          "type": ["integer", "null"],
+          "description": "Worst ever normalized value."
+        },
+        "raw_hex": {
+          "type": ["string", "null"],
+          "description": "Raw value as hex string, e.g. '0x0000000969AFB4'."
+        },
+        "raw_value": {
+          "type": ["integer", "null"],
+          "description": "Raw value as decimal integer."
+        }
+      },
+      "additionalProperties": false
+    },
+    "dst_info": {
+      "type": "object",
+      "properties": {
+        "supported": {
+          "type": "boolean"
+        },
+        "hours_since_last": {
+          "type": ["number", "null"]
+        },
+        "status_result": {
+          "type": ["string", "null"],
+          "description": "DST status hex code, e.g. '0x0'."
+        },
+        "test_run": {
+          "type": ["string", "null"],
+          "description": "DST test run hex code, e.g. '0x1'."
+        }
+      },
+      "additionalProperties": false
+    },
+    "firmware_info": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string",
+          "description": "Current firmware revision string."
+        },
+        "download_support": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Supported firmware download modes, e.g. ['Immediate', 'Segmented']."
+        }
+      },
+      "additionalProperties": false
+    },
+    "security_info": {
+      "type": "object",
+      "properties": {
+        "encryption_support": {
+          "type": "string",
+          "description": "e.g. 'Not Supported', 'Self Encrypting'."
+        },
+        "ata_security": {
+          "type": ["string", "null"],
+          "description": "ATA security state, e.g. 'Supported, Frozen', 'Not Supported'."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
