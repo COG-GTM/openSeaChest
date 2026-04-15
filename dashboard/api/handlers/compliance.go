@@ -99,8 +99,10 @@ func (h *ComplianceHandler) loadDevices() ([]models.Device, error) {
 		`SELECT id, serial, product_identification, product_revision FROM devices`,
 	)
 	if err != nil {
-		// Table may not exist yet; return empty list.
-		return []models.Device{}, nil
+		if isTableNotFound(err) {
+			return []models.Device{}, nil
+		}
+		return nil, err
 	}
 	defer rows.Close()
 

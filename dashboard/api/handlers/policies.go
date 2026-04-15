@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -186,4 +187,11 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v) //nolint:errcheck
+}
+
+// isTableNotFound returns true if the error indicates a missing SQLite table
+// (e.g. "no such table: devices"). This is used to distinguish expected
+// missing-table errors from real database failures.
+func isTableNotFound(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "no such table")
 }

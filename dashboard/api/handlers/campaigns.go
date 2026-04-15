@@ -180,6 +180,11 @@ func (h *CampaignHandler) ReportDeviceResult(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	if body.DeviceSerial == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "device_serial is required"})
+		return
+	}
+
 	status := engine.MapExitCode(*body.ExitCode)
 	now := time.Now().UTC()
 
@@ -213,6 +218,8 @@ func (h *CampaignHandler) findTargetDevices(policy models.FirmwarePolicy) []mode
 		`SELECT id, serial, product_identification, product_revision FROM devices`,
 	)
 	if err != nil {
+		// If the devices table doesn't exist yet, return empty list.
+		// For other errors, also return nil since this is a best-effort helper.
 		return nil
 	}
 	defer rows.Close()
