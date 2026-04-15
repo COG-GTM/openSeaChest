@@ -5,12 +5,15 @@ import NonCompliantList from "./NonCompliantList";
 
 export default function FirmwareCompliance() {
   const [targetFw, setTargetFw] = useState("");
+  const [checkedFw, setCheckedFw] = useState("");
   const { result, loading, error, checkCompliance } = useFirmwareCompliance();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (targetFw.trim()) {
-      checkCompliance(targetFw.trim());
+    const trimmed = targetFw.trim();
+    if (trimmed) {
+      setCheckedFw(trimmed);
+      checkCompliance(trimmed);
     }
   };
 
@@ -98,7 +101,7 @@ export default function FirmwareCompliance() {
             </div>
             <NonCompliantList
               devices={result.non_compliant}
-              targetFirmware={targetFw}
+              targetFirmware={checkedFw}
             />
           </div>
         </div>
