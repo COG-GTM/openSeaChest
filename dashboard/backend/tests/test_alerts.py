@@ -158,3 +158,22 @@ def test_update_rule_type_null_ignored(client):
     assert resp.status_code == 200
     assert resp.json()["rule_type"] == "smart_tripped"
     assert resp.json()["name"] == "Still Works"
+
+
+def test_update_non_nullable_fields_null_ignored(client):
+    """Regression: sending name/enabled as null should not cause 500."""
+    create_resp = client.post(
+        "/api/v1/alerts/rules",
+        json={"name": "Original", "rule_type": "smart_tripped", "enabled": True},
+    )
+    rule_id = create_resp.json()["id"]
+
+    resp = client.put(
+        f"/api/v1/alerts/rules/{rule_id}",
+        json={"name": None, "enabled": None, "description": "updated desc"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "Original"
+    assert data["enabled"] is True
+    assert data["description"] == "updated desc"
