@@ -165,7 +165,8 @@ func (s *Store) GetActiveAlertForDevice(ruleID, deviceSerial string) *models.Ale
 	if !ok || !alert.IsActive() {
 		return nil
 	}
-	return alert
+	alertCopy := *alert
+	return &alertCopy
 }
 
 // CreateOrDeduplicateAlert creates a new alert or updates last_seen if a duplicate exists.
