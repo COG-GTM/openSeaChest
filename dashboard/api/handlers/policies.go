@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -37,6 +38,11 @@ func (h *PolicyHandler) CreatePolicy(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{
 			"error": "name, model_pattern, and required_firmware are required",
 		})
+		return
+	}
+
+	if _, err := filepath.Match(input.ModelPattern, ""); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "model_pattern is not a valid glob pattern"})
 		return
 	}
 
@@ -141,6 +147,10 @@ func (h *PolicyHandler) UpdatePolicy(w http.ResponseWriter, r *http.Request) {
 		existing.Name = input.Name
 	}
 	if input.ModelPattern != "" {
+		if _, err := filepath.Match(input.ModelPattern, ""); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "model_pattern is not a valid glob pattern"})
+			return
+		}
 		existing.ModelPattern = input.ModelPattern
 	}
 	if input.RequiredFirmware != "" {

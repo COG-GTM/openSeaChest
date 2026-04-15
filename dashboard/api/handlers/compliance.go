@@ -41,6 +41,8 @@ func (h *ComplianceHandler) GetFleetCompliance(w http.ResponseWriter, r *http.Re
 	summaries := engine.EvaluateFleet(policies, devices)
 
 	// Persist individual compliance results for audit trail.
+	// Uses upsert (ON CONFLICT … DO UPDATE) so that repeated evaluations
+	// update the existing row instead of appending unbounded duplicates.
 	for _, policy := range policies {
 		for _, device := range devices {
 			result := engine.EvaluateCompliance(policy, device)
@@ -49,7 +51,11 @@ func (h *ComplianceHandler) GetFleetCompliance(w http.ResponseWriter, r *http.Re
 			}
 			_, _ = h.DB.Exec(
 				`INSERT INTO compliance_results (device_id, policy_id, compliant, current_firmware, checked_at)
-				 VALUES (?, ?, ?, ?, ?)`,
+				 VALUES (?, ?, ?, ?, ?)
+				 ON CONFLICT(device_id, policy_id) DO UPDATE SET
+				   compliant=excluded.compliant,
+				   current_firmware=excluded.current_firmware,
+				   checked_at=excluded.checked_at`,
 				result.DeviceID, result.PolicyID, result.Compliant, result.CurrentFirmware, time.Now().UTC(),
 			)
 		}

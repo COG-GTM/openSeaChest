@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS compliance_results (
     policy_id         INTEGER NOT NULL REFERENCES firmware_policies(id),
     compliant         BOOLEAN NOT NULL,
     current_firmware  TEXT    NOT NULL,
-    checked_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    checked_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(device_id, policy_id)
 );
 
 CREATE TABLE IF NOT EXISTS firmware_campaigns (
