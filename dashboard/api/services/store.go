@@ -70,9 +70,9 @@ func (s *Store) CreateRule(req models.CreateRuleRequest) (*models.AlertRule, err
 
 	s.mu.Lock()
 	s.rules[rule.ID] = rule
+	ruleCopy := *rule
 	s.mu.Unlock()
 
-	ruleCopy := *rule
 	return &ruleCopy, nil
 }
 
