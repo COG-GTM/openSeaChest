@@ -141,6 +141,11 @@ func (h *CampaignHandler) GetCampaign(w http.ResponseWriter, r *http.Request) {
 		devices = append(devices, d)
 	}
 
+	if err := rows.Err(); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to iterate campaign device rows"})
+		return
+	}
+
 	summary := engine.ComputeCampaignSummary(devices)
 
 	writeJSON(w, http.StatusOK, models.CampaignStatus{
@@ -217,6 +222,9 @@ func (h *CampaignHandler) findTargetDevices(policy models.FirmwarePolicy) []mode
 			!engine.MatchFirmware(policy.RequiredFirmware, d.ProductRevision) {
 			targets = append(targets, d)
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return targets
 	}
 	return targets
 }

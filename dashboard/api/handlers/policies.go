@@ -97,6 +97,11 @@ func (h *PolicyHandler) ListPolicies(w http.ResponseWriter, r *http.Request) {
 		policies = append(policies, p)
 	}
 
+	if err := rows.Err(); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to iterate policy rows"})
+		return
+	}
+
 	writeJSON(w, http.StatusOK, policies)
 }
 
