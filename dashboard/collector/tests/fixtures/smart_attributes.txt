@@ -1,0 +1,26 @@
+===============================================================================
+ SeaChest - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+Attribute Name:                   Status: Nominal: Worst:     Raw (hex):
+  1 Read Error Rate               0x000F    0x75    0x63      0x0000000969AFB4
+  3 Spin Up Time                  0x0003    0x61    0x61      0x00000000000000
+  4 Start/Stop Count              0x0032    0x63    0x63      0x0000000000079E
+  5 Retired Sectors Count         0x0033    0x64    0x64      0x00000000000000
+  7 Seek Error Rate               0x000F    0x52    0x3C      0x0000000A4D0DAA
+  9 Power On Hours                0x0032    0x5D    0x5D      0x00000000001A84
+ 10 Spin Retry Count              0x0013    0x64    0x64      0x00000000000000
+ 12 Drive Power Cycle Count       0x0032    0x63    0x63      0x000000000007A5
+184 IOEDC Count                   0x0032    0x55    0x55      0x0000000000000F
+187 Reported Un-correctable       0x0032    0x64    0x64      0x00000000000000
+188 Command Timeout               0x0032    0x64    0xFD      0x00000000000000
+189 High Fly Writes               0x003A    0x64    0x64      0x00000000000000
+190 Airflow Temperature           0x0022    0x40    0x2E      0x00000026110024
+191 Shock Sensor Counter          0x0032    0x64    0x64      0x00000000000000
+192 Emergency Retract Count       0x0032    0x64    0x64      0x00000000000042
+193 Load-Unlock Count             0x0032    0x44    0x44      0x0000000000FA61
+194 Temperature                   0x0022    0x24    0x36      0x00000A00000024
+195 ECC On The Fly Count          0x001A    0x2D    0x29      0x0000000969AFB4
+197 Pending-Sparing Count         0x0012    0x64    0x64      0x00000000000000
+198 Offline Uncorrectable Sectors 0x0010    0x64    0x64      0x00000000000000
+199 Ultra DMA CRC Error           0x003E    0xC8    0xC8      0x00000000000000

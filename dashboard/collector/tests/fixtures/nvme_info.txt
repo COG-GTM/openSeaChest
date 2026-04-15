@@ -1,0 +1,51 @@
+===============================================================================
+ openSeaChest_Basics - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: Seagate FireCuda 530 ZP1000GM30013
+        Serial Number: 7VS019QT
+        Firmware Revision: SU6SM001
+        World Wide Name: 5000C500D1E4B3210
+        Drive Capacity (TB/TiB): 1.00/0.91
+        Temperature Data:
+                Current Temperature (C): 38
+                Highest Temperature (C): 52
+                Lowest Temperature (C): 22
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  120 days 5 hours
+        Power On Hours: 2885.00
+        MaxLBA: 1953525167
+        Native MaxLBA: Not Reported
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 512
+        Sector Alignment: 0
+        Rotation Rate (RPM): Not Reported
+        Form Factor (inch): Not Reported
+        Last DST information:
+                Not supported
+        Interface speed:
+                Max Speed (GT/s): 16.0
+                Negotiated Speed (GT/s): 16.0
+        Annualized Workload Rate (TB/yr): 45.20
+        Total Bytes Read (TB): 15.30
+        Total Bytes Written (TB): 12.80
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): Not Reported
+        Percentage Used Endurance Indicator (%): 2.00000
+        Read Look-Ahead: Not Reported
+        Write Cache: Not Reported
+        SMART Status: Good
+        ATA Security Information: Not Supported
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate
+        Specifications Supported:
+                NVMe 1.4
+        Features Supported:
+                Sanitize
+                Format NVM
+                Firmware Update
+                Namespace Management

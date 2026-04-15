@@ -1,0 +1,61 @@
+===============================================================================
+ SeaChest - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST400FM0053
+        Serial Number: P3QF13026
+        Firmware Revision: 0006
+        World Wide Name: 5000QC50069010B4B
+        Copyright: Copyright (c) 2014-2022 Seagate All rights reserved -
+        Drive Capacity (GB/GiB): 400.09/372.61
+        Temperature Data:
+                Current Temperature (C): 34
+                Highest Temperature (C): Not Reported
+                Lowest Temperature (C): Not Reported
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  30 days 21 hours 29 minutes
+        Power On Hours: 741.48
+        MaxLBA: 781422767
+        Native MaxLBA: Not Reported
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 4096
+        Sector Alignment: 0
+        Rotation Rate (RPM): SSD
+        Form Factor (inch): 2.5
+        Last DST information:
+                Time since last DST (hours): 434.48
+                DST Status/Result: 0x0
+                DST Test run: 0x1
+        Interface speed:
+                Port 0 (Current Port)
+                        Max Speed (GB/s): 12.0
+                        Negotiated Speed (Gb/s): 3.0
+                Port 1
+                        Max Speed (GB/s): 12.0
+                        Negotiated Speed (Gb/s): Not Reported
+        Annualized Workload Rate (TB/yr): 9.48
+        Total Bytes Read (GB): 24.62
+        Total Bytes Written (GB): 837.41
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): Not Reported
+        Percentage Used Endurance Indicator (%): 1.00000
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Not Supported
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate, Segmented, Deferred
+        Specifications Supported:
+                SPC-4
+        Features Supported:
+                EPC
+                Power Comsumption
+                UNMAP
+                Self Test
+                Informational Exceptions
+                Format Unit
+                Sanitize

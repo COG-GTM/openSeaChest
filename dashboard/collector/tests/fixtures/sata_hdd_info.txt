@@ -1,0 +1,71 @@
+===============================================================================
+ SeaChest - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST4000DX001-1CE168
+        Serial Number: ZQ3034X7R
+        Firmware Revision: CC44
+        World Wide Name: 500Q0C5007A5FCF19
+        Drive Capacity (TB/TiB): 4.00/3.64
+        Native Drive Capacity (TB/TiB): 4.00/3.64
+        Temperature Data:
+                Current Temperature (C): 25
+                Highest Temperature (C): 40
+                Lowest Temperature (C): 18
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  4 days 1 hour
+        Power On Hours: 97.00
+        MaxLBA: 7814037167
+        Native MaxLBA: 7814037167
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 4096
+        Sector Alignment: 0
+        Rotation Rate (RPM): 5900
+        Form Factor (inch): 3.5
+        Last DST information:
+                Time since last DST (hours): 0.00
+                DST Status/Result: 0x0
+                DST Test run: 0x1
+        Interface speed:
+                Max Speed (Gb/s): 6.0
+                Negotiated Speed (Gb/s): 6.0
+        Annualized Workload Rate (TB/yr): 2.51
+        Total Bytes Read (GB): 6.65
+        Total Bytes Written (GB): 21.27
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): 64.00
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Supported, Frozen
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate, Segmented
+        Specifications Supported:
+                ACS-2
+                ATA8-ACS
+                ATA/ATAPI-7
+                ATA/ATAPI-6
+                ATA/ATAPI-5
+                ATA/ATAPI-4
+                SATA 3.1
+                SATA 3.0
+                SATA 2.6
+                SATA 2.5
+                SATA II: Extensions
+                SATA 1.0a
+        Features Supported:
+                NCQ
+                HPA
+                Power Management
+                Security
+                SMART
+                DCO
+                48bit Address
+                APM
+                GPL
+                Free-fall Control
+                Write-Read-Verify
