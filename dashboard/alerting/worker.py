@@ -122,7 +122,7 @@ def start_worker(
     def _job() -> None:
         session = SessionFactory()
         try:
-            run_sweep(session, webhook_url=wh_url)
+            run_sweep(session, webhook_url=wh_url, dedup_window_seconds=config.DEDUP_WINDOW_SECONDS)
         finally:
             session.close()
 

@@ -36,7 +36,7 @@ def send_webhook(
         "device_model": device_model,
         "host": host,
         "message": message,
-        "fired_at": fired_at.isoformat() + ("Z" if fired_at.tzinfo else ""),
+        "fired_at": fired_at.isoformat() + ("Z" if not fired_at.tzinfo else ""),
         "rule_name": rule_name,
     }
 
