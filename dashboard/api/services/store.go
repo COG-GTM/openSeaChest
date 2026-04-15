@@ -72,7 +72,8 @@ func (s *Store) CreateRule(req models.CreateRuleRequest) (*models.AlertRule, err
 	s.rules[rule.ID] = rule
 	s.mu.Unlock()
 
-	return rule, nil
+	ruleCopy := *rule
+	return &ruleCopy, nil
 }
 
 // GetRule returns a rule by ID.
@@ -127,7 +128,8 @@ func (s *Store) UpdateRule(id string, req models.UpdateRuleRequest) (*models.Ale
 	}
 	rule.UpdatedAt = time.Now().UTC()
 
-	return rule, nil
+	updatedCopy := *rule
+	return &updatedCopy, nil
 }
 
 // DeleteRule deletes an alert rule by ID.
