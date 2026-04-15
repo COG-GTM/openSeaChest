@@ -141,3 +141,20 @@ def test_create_rule_firmware_approved_list(client):
     assert resp.status_code == 201
     data = resp.json()
     assert data["approved_firmware_list"] == ["SN03", "SN04"]
+
+
+def test_update_rule_type_null_ignored(client):
+    """Regression: sending rule_type: null should not cause 500."""
+    create_resp = client.post(
+        "/api/v1/alerts/rules",
+        json={"name": "Null Test", "rule_type": "smart_tripped"},
+    )
+    rule_id = create_resp.json()["id"]
+
+    resp = client.put(
+        f"/api/v1/alerts/rules/{rule_id}",
+        json={"rule_type": None, "name": "Still Works"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["rule_type"] == "smart_tripped"
+    assert resp.json()["name"] == "Still Works"

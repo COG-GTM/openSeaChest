@@ -136,11 +136,12 @@ def get_health_history(
     if since:
         query = query.filter(HealthSnapshot.collected_at >= since)
 
+    total = query.count()
     snapshots = query.limit(limit).all()
 
     return HealthHistoryResponse(
         serial_number=serial,
-        total=len(snapshots),
+        total=total,
         snapshots=[
             HealthSnapshotResponse(
                 id=s.id,

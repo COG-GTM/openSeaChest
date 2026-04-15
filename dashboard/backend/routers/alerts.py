@@ -80,14 +80,17 @@ def update_alert_rule(
 
     update_data = rule_in.model_dump(exclude_unset=True)
 
-    if "rule_type" in update_data and update_data["rule_type"] is not None:
-        try:
-            update_data["rule_type"] = RuleType(update_data["rule_type"])
-        except ValueError:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Invalid rule_type: {update_data['rule_type']}",
-            )
+    if "rule_type" in update_data:
+        if update_data["rule_type"] is None:
+            del update_data["rule_type"]
+        else:
+            try:
+                update_data["rule_type"] = RuleType(update_data["rule_type"])
+            except ValueError:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Invalid rule_type: {update_data['rule_type']}",
+                )
 
     for field, value in update_data.items():
         setattr(rule, field, value)
