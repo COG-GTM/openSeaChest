@@ -17,6 +17,7 @@ export function useFirmwareCompliance(): UseFirmwareComplianceResult {
   const checkCompliance = useCallback((targetFirmware: string) => {
     setLoading(true);
     setError(null);
+    setResult(null);
     getFirmwareCompliance(targetFirmware)
       .then(setResult)
       .catch((err: Error) => setError(err.message))
