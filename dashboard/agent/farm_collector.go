@@ -190,13 +190,30 @@ func ParseFARMLogJSON(data []byte) (*models.FARMLogData, error) {
 		result.MechanicalStartFailures = extractFloat(raw.ErrorInfo, "Number of Mechanical Start Failures")
 	}
 
-	// Extract Environment Information fields
-	// Note: In fromPipe.json, temperature values may have concatenated string artifacts.
-	// We attempt numeric extraction and fall back to 0.
+	// Extract Environment Information fields.
+	// FARM JSON quirk: successive field values in Environment Information are
+	// concatenated into a single string. Each field's string = previous field's
+	// string + current value appended. For example:
+	//   Current Temperature:  "...copy 037"       -> value = 37
+	//   Highest Temperature:  "...copy 03756"     -> value = 56  (strip prev "...037")
+	//   Lowest Temperature:   "...copy 0375624"   -> value = 24  (strip prev "...03756")
+	// We use extractChainedFloats to do differential parsing.
 	if raw.EnvInfo != nil {
-		result.CurrentTemperature = extractFloat(raw.EnvInfo, "Current Temperature (Celsius)")
-		result.HighestTemperature = extractFloat(raw.EnvInfo, "Highest Temperature")
-		result.LowestTemperature = extractFloat(raw.EnvInfo, "Lowest Temperature")
+		tempFields := []string{
+			"Current Temperature (Celsius)",
+			"Highest Temperature",
+			"Lowest Temperature",
+		}
+		tempValues := extractChainedFloats(raw.EnvInfo, tempFields)
+		if len(tempValues) > 0 {
+			result.CurrentTemperature = tempValues[0]
+		}
+		if len(tempValues) > 1 {
+			result.HighestTemperature = tempValues[1]
+		}
+		if len(tempValues) > 2 {
+			result.LowestTemperature = tempValues[2]
+		}
 	}
 
 	// Extract Reliability Information fields
@@ -235,9 +252,8 @@ func extractFloat(m map[string]interface{}, key string) float64 {
 		}
 		return f
 	case string:
-		// Some fields in the FARM JSON contain concatenated string artifacts.
-		// Extract the trailing numeric portion (the actual value for this field).
-		return parseTrailingFloat(v)
+		// Some fields in the FARM JSON contain string representations of numbers.
+		return parseNumericString(v)
 	default:
 		return 0
 	}
@@ -256,32 +272,61 @@ func extractString(m map[string]interface{}, key string) string {
 	return s
 }
 
-// parseTrailingFloat extracts the last contiguous numeric sequence from a string.
-// This handles the FARM log JSON quirk where field values are concatenated into
-// a single string with all previous field values prepended. For example:
-//   - "Environment Information From Farm Log copy 037"       -> 37  (current temp)
-//   - "Environment Information From Farm Log copy 03756"     -> 56  (highest temp)
-//   - "Environment Information From Farm Log copy 0375624"   -> 24  (lowest temp)
+// extractChainedFloats handles the FARM JSON concatenation quirk where successive
+// field values in a section are appended into a growing string. Each field's raw
+// string = previous field's raw string + current value appended.
 //
-// By extracting the LAST numeric run, we get the correct value for each field.
-func parseTrailingFloat(s string) float64 {
-	// Walk backwards to find the last contiguous digit sequence.
-	end := len(s)
-	// Skip trailing non-digit characters.
-	for end > 0 && !isDigitOrDot(s[end-1]) {
-		end--
-	}
-	if end == 0 {
-		return 0
+// For example, with fields ["Current Temperature", "Highest Temperature", "Lowest Temperature"]:
+//   Field 0: "Environment Information From Farm Log copy 037"       -> strip prefix -> "37"
+//   Field 1: "Environment Information From Farm Log copy 03756"     -> strip field 0 string -> "56"
+//   Field 2: "Environment Information From Farm Log copy 0375624"   -> strip field 1 string -> "24"
+//
+// If a field has a direct numeric value (not a string), it is used as-is.
+func extractChainedFloats(m map[string]interface{}, keys []string) []float64 {
+	results := make([]float64, len(keys))
+	prevRaw := ""
+
+	for i, key := range keys {
+		val, ok := m[key]
+		if !ok {
+			continue
+		}
+
+		switch v := val.(type) {
+		case float64:
+			results[i] = v
+			// For numeric values, prevRaw stays as-is (no string to chain from)
+		case string:
+			// Strip the previous field's raw string to isolate this field's value.
+			suffix := v
+			if prevRaw != "" && len(v) > len(prevRaw) {
+				suffix = v[len(prevRaw):]
+			}
+			results[i] = parseNumericString(suffix)
+			prevRaw = v
+		default:
+			// Unsupported type, leave as 0
+		}
 	}
 
-	start := end
-	for start > 0 && isDigitOrDot(s[start-1]) {
-		start--
+	return results
+}
+
+// parseNumericString parses a float from a string, ignoring leading non-numeric
+// characters. Falls back to 0 if no number can be extracted.
+func parseNumericString(s string) float64 {
+	numStr := ""
+	foundDigit := false
+	for _, ch := range s {
+		if ch >= '0' && ch <= '9' || ch == '.' || (ch == '-' && !foundDigit) {
+			numStr += string(ch)
+			foundDigit = true
+		} else if foundDigit {
+			break
+		}
 	}
 
-	numStr := s[start:end]
-	if numStr == "" || numStr == "." {
+	if numStr == "" {
 		return 0
 	}
 
@@ -291,9 +336,4 @@ func parseTrailingFloat(s string) float64 {
 		return 0
 	}
 	return f
-}
-
-// isDigitOrDot returns true if the byte is an ASCII digit or a decimal point.
-func isDigitOrDot(b byte) bool {
-	return (b >= '0' && b <= '9') || b == '.'
 }
