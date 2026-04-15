@@ -119,6 +119,9 @@ func (s *Store) ListDevices(f DeviceFilter) (*models.PaginatedDevices, error) {
 		}
 		devices = append(devices, d)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate device rows: %w", err)
+	}
 
 	return &models.PaginatedDevices{
 		Devices: devices,
@@ -169,6 +172,9 @@ func (s *Store) ListHosts() ([]models.HostResponse, error) {
 			return nil, fmt.Errorf("scan host row: %w", err)
 		}
 		hosts = append(hosts, h)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate host rows: %w", err)
 	}
 	return hosts, nil
 }

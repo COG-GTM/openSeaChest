@@ -32,6 +32,9 @@ func (s *Scanner) ScanDevices() ([]string, error) {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		exitCode := extractExitCode(err)
+		if exitCode == ExitNoDevice {
+			return nil, nil // zero devices found, not an error
+		}
 		if exitCode == ExitNeedElevatedPrivileges {
 			return nil, fmt.Errorf("elevated privileges required to scan devices: %w (exit code %d: %s)",
 				err, exitCode, ExitCodeMessage(exitCode))

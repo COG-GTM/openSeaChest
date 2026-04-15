@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/COG-GTM/openSeaChest/dashboard/agent/internal/models"
@@ -36,8 +37,8 @@ func (r *Reporter) SendReport(report *models.InventoryReport) error {
 		return fmt.Errorf("marshal report: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/api/v1/agents/%s/report", r.BaseURL, report.AgentID)
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+	reportURL := fmt.Sprintf("%s/api/v1/agents/%s/report", r.BaseURL, url.PathEscape(report.AgentID))
+	req, err := http.NewRequest(http.MethodPost, reportURL, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
