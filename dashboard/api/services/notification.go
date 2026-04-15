@@ -150,15 +150,57 @@ func (ns *NotificationService) sendEmail(channel models.NotificationChannel, pay
 	return nil
 }
 
-// sendMailWithTimeout wraps smtp.SendMail with a connection timeout.
+// sendMailWithTimeout connects to the SMTP server with a timeout and performs
+// the full SMTP transaction on the same connection, ensuring the timeout
+// applies to the actual send operation.
 func sendMailWithTimeout(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		host = addr
+	}
+
 	conn, err := net.DialTimeout("tcp", addr, 10*time.Second)
 	if err != nil {
 		return fmt.Errorf("SMTP connection failed: %w", err)
 	}
-	conn.Close()
 
-	return smtp.SendMail(addr, auth, from, to, msg)
+	client, err := smtp.NewClient(conn, host)
+	if err != nil {
+		conn.Close()
+		return fmt.Errorf("SMTP client creation failed: %w", err)
+	}
+	defer client.Close()
+
+	if auth != nil {
+		if err := client.Auth(auth); err != nil {
+			return fmt.Errorf("SMTP auth failed: %w", err)
+		}
+	}
+
+	if err := client.Mail(from); err != nil {
+		return fmt.Errorf("SMTP MAIL FROM failed: %w", err)
+	}
+
+	for _, addr := range to {
+		if err := client.Rcpt(addr); err != nil {
+			return fmt.Errorf("SMTP RCPT TO failed for %s: %w", addr, err)
+		}
+	}
+
+	w, err := client.Data()
+	if err != nil {
+		return fmt.Errorf("SMTP DATA failed: %w", err)
+	}
+
+	if _, err := w.Write(msg); err != nil {
+		return fmt.Errorf("SMTP write failed: %w", err)
+	}
+
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("SMTP close data failed: %w", err)
+	}
+
+	return client.Quit()
 }
 
 // formatAlertEmail formats the alert payload into a human-readable email body.

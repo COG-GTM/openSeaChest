@@ -3,6 +3,7 @@ package services
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -83,7 +84,8 @@ func (s *Store) GetRule(id string) (*models.AlertRule, error) {
 	if !ok {
 		return nil, fmt.Errorf("rule not found: %s", id)
 	}
-	return rule, nil
+	ruleCopy := *rule
+	return &ruleCopy, nil
 }
 
 // ListRules returns all alert rules.
@@ -180,7 +182,8 @@ func (s *Store) CreateOrDeduplicateAlert(ruleID, deviceSerial, message string) (
 			if message != "" {
 				existing.Message = message
 			}
-			return existing, false, nil
+			existingCopy := *existing
+			return &existingCopy, false, nil
 		}
 	}
 
@@ -208,7 +211,8 @@ func (s *Store) CreateOrDeduplicateAlert(ruleID, deviceSerial, message string) (
 		ChangedBy: "system",
 	})
 
-	return alert, true, nil
+	alertCopy := *alert
+	return &alertCopy, true, nil
 }
 
 // AcknowledgeAlert transitions an alert from FIRING to ACKNOWLEDGED.
@@ -240,7 +244,8 @@ func (s *Store) AcknowledgeAlert(alertID, acknowledgedBy string) (*models.Alert,
 		ChangedBy: acknowledgedBy,
 	})
 
-	return alert, nil
+	ackedCopy := *alert
+	return &ackedCopy, nil
 }
 
 // ResolveAlert transitions an alert to RESOLVED.
@@ -276,7 +281,8 @@ func (s *Store) ResolveAlert(alertID, resolvedBy string) (*models.Alert, error) 
 		ChangedBy: resolvedBy,
 	})
 
-	return alert, nil
+	resolvedCopy := *alert
+	return &resolvedCopy, nil
 }
 
 // ListActiveAlerts returns all alerts in FIRING or ACKNOWLEDGED state.
@@ -303,6 +309,14 @@ func (s *Store) ListAlertHistory(page, pageSize int) ([]models.Alert, int) {
 		all = append(all, *alert)
 	}
 
+	// Sort by FirstSeen descending for deterministic pagination
+	sort.Slice(all, func(i, j int) bool {
+		if all[i].FirstSeen.Equal(all[j].FirstSeen) {
+			return all[i].ID < all[j].ID
+		}
+		return all[i].FirstSeen.After(all[j].FirstSeen)
+	})
+
 	total := len(all)
 	start := (page - 1) * pageSize
 	if start >= total {
@@ -325,7 +339,8 @@ func (s *Store) GetAlert(id string) (*models.Alert, error) {
 	if !ok {
 		return nil, fmt.Errorf("alert not found: %s", id)
 	}
-	return alert, nil
+	alertCopy := *alert
+	return &alertCopy, nil
 }
 
 // --- Temperature Debounce ---
@@ -368,7 +383,8 @@ func (s *Store) GetChannel(id string) (*models.NotificationChannel, error) {
 	if !ok {
 		return nil, fmt.Errorf("notification channel not found: %s", id)
 	}
-	return ch, nil
+	chCopy := *ch
+	return &chCopy, nil
 }
 
 // ListChannels returns all notification channels.
