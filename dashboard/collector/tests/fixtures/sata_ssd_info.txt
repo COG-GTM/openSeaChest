@@ -1,0 +1,62 @@
+===============================================================================
+ SeaChest - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST120FP0021
+        Serial Number: PQ57011BD
+        Firmware Revision: B770
+        World Wide Name: 5000C501005A16633
+        Drive Capacity (GB/GiB): 120.03/111.79
+        Native Drive Capacity (GB/GiB): 120.03/111.79
+        Temperature Data:
+                Current Temperature (C): 26
+                Highest Temperature (C): 0
+                Lowest Temperature (C): 17
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  2 days 23 hours
+        Power On Hours: 71.00
+        MaxLBA: 234441647
+        Native MaxLBA: 234441647
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 4096
+        Sector Alignment: 0
+        Rotation Rate (RPM): SSD
+        Form Factor (inch): 2.5
+        Last DST information:
+                Not supported
+        Interface speed:
+                Max Speed (Gb/s): 6.0
+                Negotiated Speed (Gb/s): 3.0
+        Annualized Workload Rate (TB/yr): 299.80
+        Total Bytes Read (TB): 2.35
+        Total Bytes Written (GB): 90.19
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): Not Reported
+        Percentage Used Endurance Indicator (%): 0.00000
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Supported, Frozen
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate, Segmented
+        Specifications Supported:
+                ATA8-ACS
+                ATA/ATAPI-7
+                ATA/ATAPI-6
+                ATA/ATAPI-5
+                ATA/ATAPI-4
+                SATA 3.0
+        Features Supported:
+                Sanitize
+                NCQ
+                HPA
+                Power Management
+                Security
+                SMART
+                48bit Address
+                GPL
+                TRIM

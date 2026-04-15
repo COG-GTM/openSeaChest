@@ -1,0 +1,10 @@
+===============================================================================
+ openSeaChest_Basics - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+
+Vendor   Handle       Model Number        Serial Number   FwRev
+/dev/sg0 - SEAGATE  ST4000DX001-1CE168 - CC44 - 4.00 TB
+/dev/sg1 - SEAGATE  ST120FP0021 - B770 - 120.03 GB
+/dev/sg2 - SEAGATE  ST4000NM0043 - 0004 - 4.00 TB
+/dev/sg3 - SEAGATE  ST400FM0053 - 0006 - 400.09 GB

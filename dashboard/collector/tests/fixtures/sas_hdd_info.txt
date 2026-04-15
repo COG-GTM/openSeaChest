@@ -1,0 +1,59 @@
+===============================================================================
+ SeaChest - Seagate drive utilities
+ Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST4000NM0043
+        Serial Number: Z1QZ04KVG
+        Firmware Revision: 0004
+        World Wide Name: 500Q0C5005594AEFB
+        Copyright: Copyright (c) 2014-2022 Seagate All rights reserved
+        Drive Capacity (TB/TiB): 4.00/3.64
+        Temperature Data:
+                Current Temperature (C): 28
+                Highest Temperature (C): Not Reported
+                Lowest Temperature (C): Not Reported
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  61 days 11 hours 14 minutes
+        Power On Hours: 1475.23
+        MaxLBA: 7814037167
+        Native MaxLBA: Not Reported
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 512
+        Sector Alignment: 0
+        Rotation Rate (RPM): 7200
+        Form Factor (inch): 3.5
+        Last DST information:
+                Time since last DST (hours): 548.23
+                DST Status/Result: 0x0
+                DST Test run: 0x1
+        Interface speed:
+                Port 0 (Current Port)
+                        Max Speed (GB/s): 6.0
+                        Negotiated Speed (Gb/s): 3.0
+                Port 1
+                        Max Speed (GB/s): 6.0
+                        Negotiated Speed (Gb/s): Not Reported
+        Annualized Workload Rate (TB/yr): 0.02
+        Total Bytes Read (GB): 2.27
+        Total Bytes Written (GB): 2.39
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Self Encrypting
+        Cache Size (MiB): Not Reported
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Not Supported
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate
+        Specifications Supported:
+                SPC-4
+        Features Supported:
+                EPC
+                TCG
+                Self Test
+                Informational Exceptions
+                Format Unit
+                Sanitize
