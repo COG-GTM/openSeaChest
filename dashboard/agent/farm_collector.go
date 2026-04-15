@@ -23,7 +23,7 @@ func CollectFARMLogs(deviceHandle string) (*models.FARMLogData, error) {
 	}
 
 	cmd := exec.Command(farmLogBinary, "-d", deviceHandle, "--farm", "--logMode", "pipe")
-	output, err := cmd.CombinedOutput()
+	output, err := cmd.Output()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
 			return nil, fmt.Errorf("failed to execute %s: %w", farmLogBinary, err)
@@ -236,8 +236,8 @@ func extractFloat(m map[string]interface{}, key string) float64 {
 		return f
 	case string:
 		// Some fields in the FARM JSON contain concatenated string artifacts.
-		// Try to parse leading numeric portion.
-		return parseLeadingFloat(v)
+		// Extract the trailing numeric portion (the actual value for this field).
+		return parseTrailingFloat(v)
 	default:
 		return 0
 	}
@@ -256,24 +256,32 @@ func extractString(m map[string]interface{}, key string) string {
 	return s
 }
 
-// parseLeadingFloat attempts to parse a float from the leading portion of a string.
-// This handles the FARM log JSON quirk where some values are concatenated with
-// other data (e.g., "Environment Information From Farm Log copy 037" where 37
-// is the actual temperature value).
-func parseLeadingFloat(s string) float64 {
-	// Try to find a numeric portion in the string.
-	numStr := ""
-	foundDigit := false
-	for _, ch := range s {
-		if ch >= '0' && ch <= '9' || ch == '.' || ch == '-' {
-			numStr += string(ch)
-			foundDigit = true
-		} else if foundDigit {
-			break
-		}
+// parseTrailingFloat extracts the last contiguous numeric sequence from a string.
+// This handles the FARM log JSON quirk where field values are concatenated into
+// a single string with all previous field values prepended. For example:
+//   - "Environment Information From Farm Log copy 037"       -> 37  (current temp)
+//   - "Environment Information From Farm Log copy 03756"     -> 56  (highest temp)
+//   - "Environment Information From Farm Log copy 0375624"   -> 24  (lowest temp)
+//
+// By extracting the LAST numeric run, we get the correct value for each field.
+func parseTrailingFloat(s string) float64 {
+	// Walk backwards to find the last contiguous digit sequence.
+	end := len(s)
+	// Skip trailing non-digit characters.
+	for end > 0 && !isDigitOrDot(s[end-1]) {
+		end--
+	}
+	if end == 0 {
+		return 0
 	}
 
-	if numStr == "" {
+	start := end
+	for start > 0 && isDigitOrDot(s[start-1]) {
+		start--
+	}
+
+	numStr := s[start:end]
+	if numStr == "" || numStr == "." {
 		return 0
 	}
 
@@ -283,4 +291,9 @@ func parseLeadingFloat(s string) float64 {
 		return 0
 	}
 	return f
+}
+
+// isDigitOrDot returns true if the byte is an ASCII digit or a decimal point.
+func isDigitOrDot(b byte) bool {
+	return (b >= '0' && b <= '9') || b == '.'
 }

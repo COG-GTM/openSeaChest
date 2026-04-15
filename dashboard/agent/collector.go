@@ -57,6 +57,9 @@ func CollectAll(target DeviceTarget) *CollectionResult {
 		result.Errors = append(result.Errors, fmt.Errorf("FARM log collection failed: %w", err))
 		log.Printf("[WARN] FARM log collection failed for %s: %v", target.Serial, err)
 	} else {
+		// Use the target serial for consistency with other collectors,
+		// rather than the serial parsed from the FARM JSON.
+		farmData.SerialNumber = target.Serial
 		result.Metrics = append(result.Metrics, FARMLogToMetrics(farmData)...)
 	}
 
