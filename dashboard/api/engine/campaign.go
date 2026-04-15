@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/COG-GTM/openSeaChest/dashboard/api/models"
 )
 
@@ -28,15 +26,19 @@ func MapExitCode(exitCode int) string {
 	return "failed"
 }
 
-// BuildFirmwareCommand constructs the openSeaChest_Firmware command line that
-// an agent should execute on a target device. The command mirrors the usage
-// documented in docs/man/man8/openSeaChest_Firmware.8.
+// BuildFirmwareCommand returns the command and arguments that an agent should
+// execute on a target device. Returning a []string (suitable for exec.Command)
+// avoids shell interpretation and eliminates command injection risks from
+// untrusted firmware file paths or device handles.
 //
-// Example output:
+// The command mirrors the usage documented in
+// docs/man/man8/openSeaChest_Firmware.8.
 //
-//	openSeaChest_Firmware --downloadFW /path/to/firmware.bin -d /dev/sg0
-func BuildFirmwareCommand(firmwareFile string, deviceHandle string) string {
-	return fmt.Sprintf("openSeaChest_Firmware --downloadFW %s -d %s", firmwareFile, deviceHandle)
+// Example result:
+//
+//	[]string{"openSeaChest_Firmware", "--downloadFW", "/path/to/firmware.bin", "-d", "/dev/sg0"}
+func BuildFirmwareCommand(firmwareFile string, deviceHandle string) []string {
+	return []string{"openSeaChest_Firmware", "--downloadFW", firmwareFile, "-d", deviceHandle}
 }
 
 // ComputeCampaignSummary aggregates per-device statuses into a CampaignSummary.

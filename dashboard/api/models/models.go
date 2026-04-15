@@ -115,9 +115,9 @@ type CampaignSummary struct {
 //
 //	0  (UTIL_EXIT_NO_ERROR)           → success
 //	32 (Firmware Download Complete)    → success
-//	33 (Deferred FW Download Complete) → deferred_complete (reboot required)
+//	33 (Deferred FW Download Complete) → deferred (reboot required)
 //	38 (Firmware Already up to date)   → skipped
-//	36 (Model matched, FW mismatched)  → wrong_firmware
+//	36 (Model matched, FW mismatched)  → wrong_fw
 //	3  (UTIL_EXIT_OPERATION_FAILURE)   → failed
 var ExitCodeMapping = map[int]string{
 	0:  "success",
