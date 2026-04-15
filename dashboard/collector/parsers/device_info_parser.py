@@ -38,29 +38,6 @@ def _parse_int(value: str | None) -> int | None:
         return None
 
 
-def _parse_capacity_bytes(capacity_str: str | None) -> int | None:
-    """Convert a capacity string like '4.00/3.64' with unit to bytes.
-
-    The format from the CLI is e.g.:
-        Drive Capacity (TB/TiB): 4.00/3.64
-        Drive Capacity (GB/GiB): 120.03/111.79
-
-    We use the first value (decimal TB or GB) for byte computation.
-    """
-    if capacity_str is None:
-        return None
-    cleaned = _not_reported(capacity_str)
-    if cleaned is None:
-        return None
-    # Take only the first number (before the slash)
-    parts = cleaned.split("/")
-    try:
-        value = float(parts[0].strip())
-    except (ValueError, TypeError):
-        return None
-    return int(value * 1e12) if value >= 1.0 else int(value * 1e12)
-
-
 def _parse_capacity_line(key: str, value: str) -> tuple[int | None, str | None]:
     """Parse a Drive Capacity line, returning (bytes, display_string).
 
@@ -429,7 +406,7 @@ def parse_device_info(text: str, device_path: str = "") -> dict:
 
     # Device type from schema
     from dashboard.collector.schema import derive_device_type
-    raw_rotation = kv.get("Rotation Rate (RPM)")
+    raw_rotation = _not_reported(kv.get("Rotation Rate (RPM)"))
     device_type = derive_device_type(protocol, raw_rotation)
 
     device: dict[str, Any] = {
