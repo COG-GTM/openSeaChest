@@ -168,14 +168,19 @@ func (h *CampaignHandler) ReportDeviceResult(w http.ResponseWriter, r *http.Requ
 
 	var body struct {
 		DeviceSerial string `json:"device_serial"`
-		ExitCode     int    `json:"exit_code"`
+		ExitCode     *int   `json:"exit_code"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 		return
 	}
 
-	status := engine.MapExitCode(body.ExitCode)
+	if body.ExitCode == nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "exit_code is required"})
+		return
+	}
+
+	status := engine.MapExitCode(*body.ExitCode)
 	now := time.Now().UTC()
 
 	res, err := h.DB.Exec(
@@ -197,7 +202,7 @@ func (h *CampaignHandler) ReportDeviceResult(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, map[string]string{
 		"device_serial": body.DeviceSerial,
 		"status":        status,
-		"exit_code":     strconv.Itoa(body.ExitCode),
+		"exit_code":     strconv.Itoa(*body.ExitCode),
 	})
 }
 
