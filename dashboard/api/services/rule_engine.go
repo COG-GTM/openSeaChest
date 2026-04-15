@@ -162,6 +162,10 @@ func (re *RuleEngine) evaluateAgentStale(rule models.AlertRule, report DeviceRep
 	}
 
 	staleDuration := time.Duration(config.StaleIntervalSeconds) * time.Second
+	if report.LastReportedAt.IsZero() {
+		// No timestamp provided; skip to avoid false positives
+		return false, ""
+	}
 	if time.Since(report.LastReportedAt) > staleDuration {
 		return true, fmt.Sprintf("Agent for device %s has not reported for %s (threshold: %s)",
 			report.DeviceSerial,
