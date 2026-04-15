@@ -68,10 +68,11 @@ def list_devices(
         query = query.join(Host).filter(Host.hostname == host)
 
     if smart_status:
-        # Filter by latest snapshot's smart_status
+        # Use a subquery to find device IDs whose latest snapshot matches,
+        # avoiding duplicate rows when multiple snapshots share the same max timestamp.
         from sqlalchemy import func
 
-        latest_snapshot_subq = (
+        latest_ts_subq = (
             db.query(
                 HealthSnapshot.device_id,
                 func.max(HealthSnapshot.collected_at).label("max_collected"),
@@ -79,14 +80,20 @@ def list_devices(
             .group_by(HealthSnapshot.device_id)
             .subquery()
         )
-        query = query.join(
-            latest_snapshot_subq,
-            Device.id == latest_snapshot_subq.c.device_id,
-        ).join(
-            HealthSnapshot,
-            (HealthSnapshot.device_id == Device.id)
-            & (HealthSnapshot.collected_at == latest_snapshot_subq.c.max_collected),
-        ).filter(HealthSnapshot.smart_status == smart_status)
+        matching_device_ids = (
+            db.query(HealthSnapshot.device_id)
+            .join(
+                latest_ts_subq,
+                (HealthSnapshot.device_id == latest_ts_subq.c.device_id)
+                & (HealthSnapshot.collected_at == latest_ts_subq.c.max_collected),
+            )
+            .filter(HealthSnapshot.smart_status == smart_status)
+            .distinct()
+            .subquery()
+        )
+        query = query.filter(Device.id.in_(
+            db.query(matching_device_ids.c.device_id)
+        ))
 
     total = query.count()
     devices = query.offset(offset).limit(limit).all()

@@ -87,3 +87,16 @@ def test_health_history_since_filter(client):
 def test_health_history_device_not_found(client):
     resp = client.get("/api/v1/devices/NONEXISTENT/health/history")
     assert resp.status_code == 404
+
+
+def test_smart_status_filter_no_duplicates_after_repeat_collect(client):
+    """Regression: duplicate snapshots with same collected_at must not produce duplicate devices."""
+    _seed(client)
+    # Second collect creates snapshots with the same collected_at timestamp
+    client.post("/api/v1/hosts/server-01/collect", json=SAMPLE_PAYLOAD)
+
+    resp = client.get("/api/v1/devices?smart_status=Good")
+    data = resp.json()
+    assert data["total"] == 2
+    serials = [d["serial_number"] for d in data["devices"]]
+    assert len(serials) == len(set(serials)), "Duplicate devices returned"
