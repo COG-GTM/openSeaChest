@@ -1,0 +1,1201 @@
+openapi: 3.0.3
+info:
+  title: openSeaChest Fleet Health Dashboard API
+  description: |
+    REST API for the openSeaChest Fleet Health Dashboard.
+    This API enables centralized monitoring, compliance auditing, alerting,
+    and predictive health analytics for fleets of storage devices managed
+    by openSeaChest CLI utilities.
+  version: 1.0.0
+  contact:
+    name: Fleet Dashboard Team
+  license:
+    name: MPL-2.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    SerialNumber:
+      name: serial
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Device serial number
+
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number for pagination
+
+    PageSizeParam:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+      description: Number of items per page
+
+  schemas:
+    # ── Pagination wrapper ──
+    PaginatedResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    # ── Device schemas ──
+    DeviceReport:
+      type: object
+      required: [host, devices]
+      properties:
+        host:
+          type: string
+          description: Hostname of the reporting agent
+        api_key:
+          type: string
+          description: Optional per-agent key (also accepted via header)
+        collected_at:
+          type: string
+          format: date-time
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/DevicePayload'
+
+    DevicePayload:
+      type: object
+      required: [serial_number, model, handle]
+      properties:
+        handle:
+          type: string
+          description: OS device handle used during collection (e.g. /dev/sg0)
+        serial_number:
+          type: string
+        model:
+          type: string
+        fw_revision:
+          type: string
+        wwn:
+          type: string
+        capacity_bytes:
+          type: integer
+          format: int64
+        interface_type:
+          type: string
+          enum: [SATA, SAS, NVMe, USB, Unknown]
+        smart_status:
+          type: string
+          enum: [PASS, FAIL, WARNING, UNKNOWN]
+        smart_attributes:
+          type: object
+          description: Raw SMART attribute key-value pairs
+          additionalProperties: true
+        metrics:
+          $ref: '#/components/schemas/DeviceMetrics'
+        farm:
+          $ref: '#/components/schemas/FarmData'
+        firmware_info:
+          $ref: '#/components/schemas/FirmwareInfo'
+
+    DeviceMetrics:
+      type: object
+      properties:
+        temperature_c:
+          type: number
+          format: float
+        power_on_hours:
+          type: integer
+        unrecoverable_read_errors:
+          type: integer
+        unrecoverable_write_errors:
+          type: integer
+        reallocated_sectors:
+          type: integer
+        workload_tb_yr:
+          type: number
+          format: float
+
+    FarmData:
+      type: object
+      description: Field Accessible Reliability Metrics (FARM) data
+      properties:
+        helium_pressure_trips:
+          type: integer
+        disc_slip_recalibrations:
+          type: integer
+        ecc_counts:
+          type: integer
+        raw_json:
+          type: object
+          description: Full FARM JSON output from openSeaChest_LogParser
+          additionalProperties: true
+
+    FirmwareInfo:
+      type: object
+      properties:
+        current_fw:
+          type: string
+        fw_download_support:
+          type: string
+          enum: [FULL, DEFERRED, SEGMENTED, NONE, UNKNOWN]
+
+    DeviceSummary:
+      type: object
+      properties:
+        serial_number:
+          type: string
+        host:
+          type: string
+        model:
+          type: string
+        fw_revision:
+          type: string
+        wwn:
+          type: string
+        capacity_bytes:
+          type: integer
+          format: int64
+        interface_type:
+          type: string
+        smart_status:
+          type: string
+        first_seen:
+          type: string
+          format: date-time
+        last_seen:
+          type: string
+          format: date-time
+        latest_metrics:
+          $ref: '#/components/schemas/DeviceMetrics'
+
+    DeviceDetail:
+      allOf:
+        - $ref: '#/components/schemas/DeviceSummary'
+        - type: object
+          properties:
+            smart_attributes:
+              type: object
+              additionalProperties: true
+            farm:
+              $ref: '#/components/schemas/FarmData'
+            firmware_info:
+              $ref: '#/components/schemas/FirmwareInfo'
+
+    MetricsHistoryEntry:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+        temperature_c:
+          type: number
+          format: float
+        power_on_hours:
+          type: integer
+        unrecoverable_read_errors:
+          type: integer
+        unrecoverable_write_errors:
+          type: integer
+        reallocated_sectors:
+          type: integer
+        workload_tb_yr:
+          type: number
+          format: float
+
+    # ── Host schemas ──
+    HostSummary:
+      type: object
+      properties:
+        host:
+          type: string
+        device_count:
+          type: integer
+        last_check_in:
+          type: string
+          format: date-time
+        is_stale:
+          type: boolean
+          description: True if host has not reported in >2x poll interval
+
+    # ── Stats schemas ──
+    FleetStatsSummary:
+      type: object
+      properties:
+        total_devices:
+          type: integer
+        smart_pass:
+          type: integer
+        smart_fail:
+          type: integer
+        smart_warning:
+          type: integer
+        smart_unknown:
+          type: integer
+        by_interface:
+          type: object
+          properties:
+            SATA:
+              type: integer
+            SAS:
+              type: integer
+            NVMe:
+              type: integer
+            USB:
+              type: integer
+            Unknown:
+              type: integer
+        total_hosts:
+          type: integer
+        stale_hosts:
+          type: integer
+        active_alerts:
+          type: integer
+        firmware_compliant:
+          type: integer
+        firmware_non_compliant:
+          type: integer
+
+    # ── Compliance schemas ──
+    CompliancePolicy:
+      type: object
+      required: [model_pattern, approved_fw, severity]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        model_pattern:
+          type: string
+          description: Glob pattern to match device model numbers
+        approved_fw:
+          type: array
+          items:
+            type: string
+          description: List of approved firmware revisions
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    CompliancePolicyCreate:
+      type: object
+      required: [model_pattern, approved_fw, severity]
+      properties:
+        model_pattern:
+          type: string
+        approved_fw:
+          type: array
+          items:
+            type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+
+    NonCompliantDevice:
+      type: object
+      properties:
+        serial_number:
+          type: string
+        model:
+          type: string
+        host:
+          type: string
+        current_fw:
+          type: string
+        approved_fw:
+          type: array
+          items:
+            type: string
+        fw_download_support:
+          type: string
+        policy_id:
+          type: integer
+        severity:
+          type: string
+        evaluated_at:
+          type: string
+          format: date-time
+
+    ComplianceSummary:
+      type: object
+      properties:
+        total_devices:
+          type: integer
+        compliant:
+          type: integer
+        non_compliant:
+          type: integer
+        unknown:
+          type: integer
+        by_model:
+          type: array
+          items:
+            type: object
+            properties:
+              model:
+                type: string
+              total:
+                type: integer
+              compliant:
+                type: integer
+              non_compliant:
+                type: integer
+
+    # ── Alert schemas ──
+    AlertRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        rule_type:
+          type: string
+          enum: [smart_tripped, smart_warning, temperature_exceeded, firmware_non_compliant, agent_stale, error_rate_spike, custom_threshold]
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        config:
+          type: object
+          description: Rule-specific configuration (e.g. threshold values)
+          additionalProperties: true
+        enabled:
+          type: boolean
+          default: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+
+    AlertRuleCreate:
+      type: object
+      required: [name, rule_type, severity]
+      properties:
+        name:
+          type: string
+        rule_type:
+          type: string
+          enum: [smart_tripped, smart_warning, temperature_exceeded, firmware_non_compliant, agent_stale, error_rate_spike, custom_threshold]
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        config:
+          type: object
+          additionalProperties: true
+        enabled:
+          type: boolean
+          default: true
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        serial_number:
+          type: string
+        host:
+          type: string
+        rule_id:
+          type: integer
+        rule_name:
+          type: string
+        severity:
+          type: string
+          enum: [critical, warning, info]
+        status:
+          type: string
+          enum: [active, resolved, acknowledged, snoozed]
+        message:
+          type: string
+        fired_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+        snoozed_until:
+          type: string
+          format: date-time
+          nullable: true
+
+    NotificationChannel:
+      type: object
+      required: [name, channel_type, config]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        channel_type:
+          type: string
+          enum: [webhook, email, syslog]
+        config:
+          type: object
+          description: |
+            Channel-specific configuration.
+            webhook: { url: string, headers: object }
+            email: { smtp_host, smtp_port, from_addr, to_addrs: string[] }
+            syslog: { host, port, facility }
+          additionalProperties: true
+        enabled:
+          type: boolean
+          default: true
+
+    # ── Analytics schemas ──
+    HealthScore:
+      type: object
+      properties:
+        serial_number:
+          type: string
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        trend:
+          type: string
+          enum: [improving, stable, declining]
+        factors:
+          type: object
+          properties:
+            smart_status:
+              type: object
+              properties:
+                score:
+                  type: number
+                weight:
+                  type: number
+            error_rate:
+              type: object
+              properties:
+                score:
+                  type: number
+                weight:
+                  type: number
+            temperature:
+              type: object
+              properties:
+                score:
+                  type: number
+                weight:
+                  type: number
+            farm_reliability:
+              type: object
+              properties:
+                score:
+                  type: number
+                weight:
+                  type: number
+        computed_at:
+          type: string
+          format: date-time
+
+    AtRiskDevice:
+      type: object
+      properties:
+        serial_number:
+          type: string
+        model:
+          type: string
+        host:
+          type: string
+        score:
+          type: number
+          format: float
+        trend:
+          type: string
+          enum: [improving, stable, declining]
+        smart_status:
+          type: string
+        primary_risk_factor:
+          type: string
+
+    ModelReliability:
+      type: object
+      properties:
+        model:
+          type: string
+        device_count:
+          type: integer
+        failure_count:
+          type: integer
+        afr:
+          type: number
+          format: float
+          description: Annualized Failure Rate as a percentage
+        mtbf_hours:
+          type: number
+          format: float
+          description: Mean Time Between Failures in hours
+          nullable: true
+
+    # ── Common ──
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+
+    ReportResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        devices_processed:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              serial_number:
+                type: string
+              error:
+                type: string
+
+paths:
+  # ── Report ingestion ──
+  /api/v1/report:
+    post:
+      operationId: ingestReport
+      summary: Ingest a batch device report from an agent
+      tags: [Collection]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceReport'
+      responses:
+        '200':
+          description: Report accepted and processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '400':
+          description: Invalid report payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized — invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited — too many requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Devices ──
+  /api/v1/devices:
+    get:
+      operationId: listDevices
+      summary: List all known devices with optional filtering
+      tags: [Devices]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - name: model
+          in: query
+          schema:
+            type: string
+          description: Filter by model (substring match)
+        - name: host
+          in: query
+          schema:
+            type: string
+          description: Filter by host
+        - name: smart_status
+          in: query
+          schema:
+            type: string
+            enum: [PASS, FAIL, WARNING, UNKNOWN]
+          description: Filter by SMART status
+        - name: fw_revision
+          in: query
+          schema:
+            type: string
+          description: Filter by firmware revision
+        - name: interface_type
+          in: query
+          schema:
+            type: string
+            enum: [SATA, SAS, NVMe, USB, Unknown]
+          description: Filter by interface type
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Full-text search across serial, model, host
+      responses:
+        '200':
+          description: Paginated list of devices
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DeviceSummary'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/devices/{serial}:
+    get:
+      operationId: getDevice
+      summary: Get detailed information for a single device
+      tags: [Devices]
+      parameters:
+        - $ref: '#/components/parameters/SerialNumber'
+      responses:
+        '200':
+          description: Device details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDetail'
+        '404':
+          description: Device not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/devices/{serial}/history:
+    get:
+      operationId: getDeviceHistory
+      summary: Get time-series metrics history for a device
+      tags: [Devices]
+      parameters:
+        - $ref: '#/components/parameters/SerialNumber'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start of time range (ISO 8601)
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End of time range (ISO 8601)
+        - name: interval
+          in: query
+          schema:
+            type: string
+            enum: [1h, 6h, 1d, 7d]
+            default: 1h
+          description: Aggregation interval for time-bucketed results
+      responses:
+        '200':
+          description: Time-series metrics history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serial_number:
+                    type: string
+                  from:
+                    type: string
+                    format: date-time
+                  to:
+                    type: string
+                    format: date-time
+                  interval:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MetricsHistoryEntry'
+        '404':
+          description: Device not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Hosts ──
+  /api/v1/hosts:
+    get:
+      operationId: listHosts
+      summary: List all known hosts with device counts and check-in status
+      tags: [Hosts]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated list of hosts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/HostSummary'
+
+  # ── Stats ──
+  /api/v1/stats/summary:
+    get:
+      operationId: getStatsSummary
+      summary: Get fleet-wide summary statistics
+      tags: [Stats]
+      responses:
+        '200':
+          description: Fleet summary statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FleetStatsSummary'
+
+  # ── Compliance ──
+  /api/v1/policies:
+    get:
+      operationId: listPolicies
+      summary: List all firmware compliance policies
+      tags: [Compliance]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: Paginated list of compliance policies
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CompliancePolicy'
+    post:
+      operationId: createPolicy
+      summary: Create a new firmware compliance policy
+      tags: [Compliance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompliancePolicyCreate'
+      responses:
+        '201':
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompliancePolicy'
+        '400':
+          description: Invalid policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/policies/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      operationId: updatePolicy
+      summary: Update a compliance policy
+      tags: [Compliance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompliancePolicyCreate'
+      responses:
+        '200':
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompliancePolicy'
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      operationId: deletePolicy
+      summary: Delete a compliance policy
+      tags: [Compliance]
+      responses:
+        '204':
+          description: Policy deleted
+        '404':
+          description: Policy not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/compliance:
+    get:
+      operationId: listNonCompliantDevices
+      summary: List non-compliant devices
+      tags: [Compliance]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - name: policy_id
+          in: query
+          schema:
+            type: integer
+          description: Filter by policy ID
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, warning, info]
+      responses:
+        '200':
+          description: Paginated list of non-compliant devices
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NonCompliantDevice'
+
+  /api/v1/compliance/summary:
+    get:
+      operationId: getComplianceSummary
+      summary: Get firmware compliance summary
+      tags: [Compliance]
+      responses:
+        '200':
+          description: Compliance summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceSummary'
+
+  # ── Alerts ──
+  /api/v1/alerts:
+    get:
+      operationId: listAlerts
+      summary: List alerts with filtering
+      tags: [Alerts]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, resolved, acknowledged, snoozed]
+          description: Filter by alert status
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, warning, info]
+          description: Filter by severity
+        - name: host
+          in: query
+          schema:
+            type: string
+          description: Filter by host
+        - name: serial
+          in: query
+          schema:
+            type: string
+          description: Filter by device serial number
+        - name: rule_id
+          in: query
+          schema:
+            type: integer
+          description: Filter by alert rule ID
+      responses:
+        '200':
+          description: Paginated list of alerts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Alert'
+
+  /api/v1/alerts/rules:
+    post:
+      operationId: createAlertRule
+      summary: Create a custom alert rule
+      tags: [Alerts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertRuleCreate'
+      responses:
+        '201':
+          description: Alert rule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertRule'
+        '400':
+          description: Invalid rule definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      operationId: listAlertRules
+      summary: List all alert rules
+      tags: [Alerts]
+      responses:
+        '200':
+          description: List of alert rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertRule'
+
+  /api/v1/alerts/{id}/acknowledge:
+    post:
+      operationId: acknowledgeAlert
+      summary: Acknowledge an alert
+      tags: [Alerts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Alert acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Alert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/alerts/{id}/snooze:
+    post:
+      operationId: snoozeAlert
+      summary: Snooze an alert for a duration
+      tags: [Alerts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [duration_minutes]
+              properties:
+                duration_minutes:
+                  type: integer
+                  minimum: 1
+                  description: How long to snooze (minutes)
+      responses:
+        '200':
+          description: Alert snoozed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '404':
+          description: Alert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/alerts/channels:
+    post:
+      operationId: createNotificationChannel
+      summary: Create a notification channel
+      tags: [Alerts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationChannel'
+      responses:
+        '201':
+          description: Channel created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationChannel'
+    get:
+      operationId: listNotificationChannels
+      summary: List notification channels
+      tags: [Alerts]
+      responses:
+        '200':
+          description: List of notification channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationChannel'
+
+  # ── Analytics ──
+  /api/v1/devices/{serial}/health-score:
+    get:
+      operationId: getDeviceHealthScore
+      summary: Get the computed health score for a device
+      tags: [Analytics]
+      parameters:
+        - $ref: '#/components/parameters/SerialNumber'
+      responses:
+        '200':
+          description: Device health score with contributing factors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthScore'
+        '404':
+          description: Device not found or score not yet computed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/analytics/at-risk:
+    get:
+      operationId: getAtRiskDevices
+      summary: List devices with declining health scores sorted by urgency
+      tags: [Analytics]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+      responses:
+        '200':
+          description: At-risk devices sorted by urgency (SMART Tripped first)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AtRiskDevice'
+
+  /api/v1/analytics/model-reliability:
+    get:
+      operationId: getModelReliability
+      summary: Per-model failure rate and reliability statistics
+      tags: [Analytics]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - name: min_devices
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Minimum device count threshold per model
+      responses:
+        '200':
+          description: Model reliability statistics (models with >= min_devices)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ModelReliability'
